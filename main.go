@@ -68,10 +68,11 @@ func main() {
 
 		clientTraceCtx := httptrace.WithClientTrace(req.Context(), clientTrace)
 		req = req.WithContext(clientTraceCtx)
-		_, err = client.Do(req)
+		resp, err := client.Do(req)
 		if err != nil {
 			panic(err)
 		}
+		defer resp.Body.Close()
 		fmt.Println()
 		time.Sleep(2 * time.Second)
 	}
