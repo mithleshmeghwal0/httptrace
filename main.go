@@ -50,9 +50,10 @@ var keywords = []string{
 	"coffee",
 }
 
+var client http.Client
+
 func main() {
 	path := routes[0]
-	var client http.Client
 	for i := 0; i < 8; i++ {
 		//changeSearchEngine()
 		if i == 3 {
@@ -61,21 +62,28 @@ func main() {
 		if i == 6 {
 			path = routes[0]
 		}
-		req, err := http.NewRequest(http.MethodGet, path+keywords[i], nil)
-		if err != nil {
-			panic(err)
-		}
-
-		clientTraceCtx := httptrace.WithClientTrace(req.Context(), clientTrace)
-		req = req.WithContext(clientTraceCtx)
-		resp, err := client.Do(req)
-		if err != nil {
-			panic(err)
-		}
-		defer resp.Body.Close()
-		fmt.Println()
-		time.Sleep(2 * time.Second)
+		call(path + keywords[i])
 	}
+}
+
+func call(path string) {
+	req, err := http.NewRequest(http.MethodGet, path, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	clientTraceCtx := httptrace.WithClientTrace(req.Context(), clientTrace)
+	req = req.WithContext(clientTraceCtx)
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer func() {
+		resp.Body.Close()
+		fmt.Println("body closed")
+	}()
+	fmt.Println()
+	time.Sleep(2 * time.Second)
 }
 
 func toString(v interface{}) string {
